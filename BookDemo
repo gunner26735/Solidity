@@ -1,0 +1,99 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.10;
+
+contract BookDemo {
+
+    struct Book{
+        string bTitle;
+        string bAuthor;
+        string bPublication;
+        bool bAvailable;
+    }
+    mapping(uint => Book) Books;
+    uint private id = 0; 
+	address private owner;
+
+	constructor(){
+		owner=msg.sender;
+	}
+
+    // this function can add a book and only accessible by gavin
+    function addBook(string memory title, string memory author, string memory publication) public {
+        require(msg.sender == owner,"Transaction Fail");
+        id++;
+        Books[id] = Book(title,author,publication,true);
+    
+    }
+
+    // this function makes book unavailable and only accessible by gavin
+    function removeBook(uint _id) public {
+        require(msg.sender == owner,"Transaction Fail");
+        Books[_id].bAvailable = false;
+    }
+
+    // this function modifies the book details and only accessible by gavin
+    function updateDetails(
+        uint _id, 
+        string memory title, 
+        string memory author, 
+        string memory publication, 
+        bool available) public {
+            require(msg.sender == owner,"Transaction Fail");
+            Books[_id] = Book(title,author,publication,available);
+        }
+
+    // this function returns the ID of all books with given title
+    function findBookByTitle(string calldata title) public view returns (uint[] memory list){
+        uint j = 0 ;
+        uint[] memory bIDs = new uint[](id);
+        for(uint i=1;i<=id;i++){
+            if(((msg.sender == owner) || Books[i].bAvailable) && (keccak256(abi.encodePacked(Books[i].bTitle)) == keccak256(abi.encodePacked(title)))){
+                bIDs[j] = i;
+                j++;
+            }
+        }
+        list = new uint[](j);
+        for(uint i = 0; i < j; i++){
+            list[i] = bIDs[i];
+        }
+    }
+
+    // this function returns the ID of all books with given publication
+    function findAllBooksOfPublication (string calldata publication) public view returns (uint[] memory list){
+        uint j = 0 ;
+        uint[] memory bIDs = new uint[](id);
+        for(uint i=1;i<=id;i++){
+            if(((msg.sender == owner) || Books[i].bAvailable) && (keccak256(abi.encodePacked(Books[i].bPublication)) == keccak256(abi.encodePacked(publication)))){
+                bIDs[j] = i;
+                j++;
+            }
+        }
+        list = new uint[](j);
+        for(uint i = 0; i < j; i++){
+            list[i] = bIDs[i];
+        }
+    }
+
+    // this function returns the ID of all books with given author
+    function findAllBooksOfAuthor (string calldata author) public view returns (uint[] memory){
+        uint j = 0 ;
+        uint[] memory bIDs = new uint[](id);
+        for(uint i=1;i<=id;i++){
+            if(((msg.sender == owner) || Books[i].bAvailable) && (keccak256(abi.encodePacked(Books[i].bAuthor)) == keccak256(abi.encodePacked(author)))){
+                bIDs[j] = i;
+                j++;
+            }
+        }
+        return bIDs;
+    }
+
+    // this function returns all the details of book with given ID
+    function getDetailsById(uint _id) public view returns (
+        string memory title, 
+        string memory author, 
+        string memory publication, 
+        bool available){
+            return(Books[_id].bTitle,Books[_id].bAuthor,Books[_id].bPublication,Books[_id].bAvailable);
+        }
+
+}
